@@ -48,6 +48,30 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// login user
+app.post("/login", async (req, res) => {
+  try {
+    const user = await NewUser.findOne({ email: req.body.email }).exec();
+
+    if (user) {
+      const isValidPassword = await bcrypt.compare(
+        req.body.password,
+        user.password
+      );
+
+      if (isValidPassword) {
+        res.json({ isLoginSuccess: true, role: user.role });
+      } else {
+        res.json({ isLoginSuccess: false });
+      }
+    } else {
+      res.json({ isLoginSuccess: false });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("House Hunters' Server is Running.");
 });

@@ -25,24 +25,30 @@ main().catch((err) => console.log(err));
 // save new user info to database
 app.post("/signup", async (req, res) => {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = await NewUser.findOne({ email: req.body.email }).exec();
 
-    const newUser = new NewUser({
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-      password: hashedPassword,
-      role: req.body.role,
-    });
+    if (user) {
+      res.json({ isEmailRegistered: true });
+    } else {
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-    await newUser
-      .save()
-      .then((result) => {
-        res.send(result);
-      })
-      .catch((err) => {
-        res.send(err);
+      const newUser = new NewUser({
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        password: hashedPassword,
+        role: req.body.role,
       });
+
+      await newUser
+        .save()
+        .then((result) => {
+          res.send(result);
+        })
+        .catch((err) => {
+          res.send(err);
+        });
+    }
   } catch (err) {
     res.send(err);
   }

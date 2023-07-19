@@ -85,6 +85,7 @@ app.post("/house-details", async (req, res) => {
   try {
     const houseDetails = new HouseDetails({
       ownerName: req.body.ownerName,
+      email: req.body.email,
       address: req.body.address,
       city: req.body.city,
       phone: req.body.phone,
@@ -108,6 +109,13 @@ app.post("/house-details", async (req, res) => {
   } catch (err) {
     res.send(err);
   }
+});
+
+// get houses details
+app.get("/house-details/:email", async (req, res) => {
+  const email = req.params.email;
+  const houses = await HouseDetails.find({ email: email }).exec();
+  res.send(houses);
 });
 
 app.get("/", (req, res) => {

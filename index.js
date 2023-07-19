@@ -4,9 +4,11 @@ const bcrypt = require("bcrypt");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
+require("dotenv").config();
 const newUserSchema = require("./schemas/newUserSchema");
 const NewUser = new mongoose.model("NewUser", newUserSchema);
-require("dotenv").config();
+const houseDetailsSchema = require("./schemas/houseDetailsSchema");
+const HouseDetails = new mongoose.model("HouseDetails", houseDetailsSchema);
 
 // middleware
 app.use(cors());
@@ -73,6 +75,36 @@ app.post("/login", async (req, res) => {
     } else {
       res.json({ isLoginSuccess: false });
     }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// save new house info to database
+app.post("/house-details", async (req, res) => {
+  try {
+    const houseDetails = new HouseDetails({
+      ownerName: req.body.ownerName,
+      address: req.body.address,
+      city: req.body.city,
+      phone: req.body.phone,
+      bedrooms: req.body.bedrooms,
+      bathrooms: req.body.bathrooms,
+      roomSize: req.body.roomSize,
+      url: req.body.url,
+      availabilityDate: req.body.availabilityDate,
+      rent: req.body.rent,
+      description: req.body.description,
+    });
+
+    await houseDetails
+      .save()
+      .then((result) => {
+        res.send(result);
+      })
+      .catch((err) => {
+        res.send(err);
+      });
   } catch (err) {
     res.send(err);
   }

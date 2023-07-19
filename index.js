@@ -112,6 +112,12 @@ app.post("/house-details", async (req, res) => {
 });
 
 // get houses details
+app.get("/house-details", async (req, res) => {
+  const houses = await HouseDetails.find().exec();
+  res.send(houses);
+});
+
+// get houses details by email
 app.get("/house-details/:email", async (req, res) => {
   const email = req.params.email;
   const houses = await HouseDetails.find({ email: email }).exec();

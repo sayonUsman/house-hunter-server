@@ -56,7 +56,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-// login user
+// get user info from database
 app.post("/login", async (req, res) => {
   try {
     const user = await NewUser.findOne({ email: req.body.email }).exec();
@@ -80,7 +80,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// save new house info to database
+// save new house details to database
 app.post("/house-details", async (req, res) => {
   try {
     const houseDetails = new HouseDetails({
@@ -112,7 +112,7 @@ app.post("/house-details", async (req, res) => {
 });
 
 // get houses details
-app.get("/house-details", async (req, res) => {
+app.get("/houses-details", async (req, res) => {
   try {
     const houses = await HouseDetails.find()
       .select({
@@ -131,7 +131,7 @@ app.get("/house-details", async (req, res) => {
   }
 });
 
-// get houses details by id
+// get house details by id
 app.get("/house-details/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -143,11 +143,21 @@ app.get("/house-details/:id", async (req, res) => {
 });
 
 // get houses details by email
-app.get("/house-details/:email", async (req, res) => {
+app.get("/houses-details/:email", async (req, res) => {
   try {
     const email = req.params.email;
     const houses = await HouseDetails.find({ email: email }).exec();
     res.send(houses);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// delete house details by id
+app.delete("/house-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await HouseDetails.deleteOne({ _id: id });
   } catch (err) {
     res.send(err);
   }

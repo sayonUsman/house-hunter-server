@@ -113,15 +113,44 @@ app.post("/house-details", async (req, res) => {
 
 // get houses details
 app.get("/house-details", async (req, res) => {
-  const houses = await HouseDetails.find().exec();
-  res.send(houses);
+  try {
+    const houses = await HouseDetails.find()
+      .select({
+        _id: 1,
+        address: 1,
+        roomSize: 1,
+        url: 1,
+        availabilityDate: 1,
+        rent: 1,
+      })
+      .exec();
+
+    res.send(houses);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// get houses details by id
+app.get("/house-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const details = await HouseDetails.find({ _id: id }).exec();
+    res.send(details);
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 // get houses details by email
 app.get("/house-details/:email", async (req, res) => {
-  const email = req.params.email;
-  const houses = await HouseDetails.find({ email: email }).exec();
-  res.send(houses);
+  try {
+    const email = req.params.email;
+    const houses = await HouseDetails.find({ email: email }).exec();
+    res.send(houses);
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 app.get("/", (req, res) => {

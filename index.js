@@ -157,7 +157,39 @@ app.get("/houses-details/:email", async (req, res) => {
 app.delete("/house-details/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    await HouseDetails.deleteOne({ _id: id });
+    await HouseDetails.deleteOne({ _id: id }).then((result) => {
+      res.send(result);
+    });
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// update house details by id
+app.put("/house-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    await HouseDetails.updateOne(
+      { _id: id },
+      {
+        $set: {
+          ownerName: req.body.ownerName,
+          address: req.body.address,
+          city: req.body.city,
+          phone: req.body.phone,
+          bedrooms: req.body.bedrooms,
+          bathrooms: req.body.bathrooms,
+          roomSize: req.body.roomSize,
+          url: req.body.url,
+          availabilityDate: req.body.availabilityDate,
+          rent: req.body.rent,
+          description: req.body.description,
+        },
+      }
+    ).then((result) => {
+      res.send(result);
+    });
   } catch (err) {
     res.send(err);
   }

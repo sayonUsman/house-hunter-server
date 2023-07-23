@@ -9,6 +9,11 @@ const newUserSchema = require("./schemas/newUserSchema");
 const NewUser = new mongoose.model("NewUser", newUserSchema);
 const houseDetailsSchema = require("./schemas/houseDetailsSchema");
 const HouseDetails = new mongoose.model("HouseDetails", houseDetailsSchema);
+const bookedHouseDetailsSchema = require("./schemas/bookedHouseDetailsSchema");
+const BookedHouseDetails = new mongoose.model(
+  "BookedHouseDetails",
+  bookedHouseDetailsSchema
+);
 
 // middleware
 app.use(cors());
@@ -190,6 +195,51 @@ app.put("/house-details/:id", async (req, res) => {
     ).then((result) => {
       res.send(result);
     });
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// save booked house details to database
+app.post("/booked-house-details", async (req, res) => {
+  try {
+    const details = await BookedHouseDetails.find({
+      renterEmail: req.body.email,
+    }).exec();
+
+    const isHouseBooked = await BookedHouseDetails.findOne({
+      houseId: req.body.houseId,
+    }).exec();
+
+    if (details.length >= 2) {
+      res.json({ isMoreThanTwo: true });
+    } else if (isHouseBooked) {
+      res.json({ isHouseBooked: true });
+    } else if (details.length < 2) {
+      const user = await NewUser.findOne({ email: req.body.email })
+        .select({
+          name: 1,
+          email: 1,
+          phone: 1,
+        })
+        .exec();
+
+      const bookedHouseDetails = new BookedHouseDetails({
+        renterName: user.name,
+        renterEmail: user.email,
+        renterPhone: user.phone,
+        houseId: req.body.houseId,
+      });
+
+      await bookedHouseDetails
+        .save()
+        .then((result) => {
+          res.send(result);
+        })
+        .catch((err) => {
+          res.send(err);
+        });
+    }
   } catch (err) {
     res.send(err);
   }

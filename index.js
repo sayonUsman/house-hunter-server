@@ -38,7 +38,6 @@ app.post("/signup", async (req, res) => {
       res.json({ isEmailRegistered: true });
     } else {
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
       const newUser = new NewUser({
         name: req.body.name,
         email: req.body.email,
@@ -121,12 +120,11 @@ app.get("/houses-details", async (req, res) => {
   try {
     const houses = await HouseDetails.find()
       .select({
-        _id: 1,
-        address: 1,
-        roomSize: 1,
-        url: 1,
-        availabilityDate: 1,
-        rent: 1,
+        bathrooms: 0,
+        bedrooms: 0,
+        city: 0,
+        description: 0,
+        email: 0,
       })
       .exec();
 
@@ -174,7 +172,6 @@ app.delete("/house-details/:id", async (req, res) => {
 app.put("/house-details/:id", async (req, res) => {
   try {
     const id = req.params.id;
-
     await HouseDetails.updateOne(
       { _id: id },
       {
@@ -229,6 +226,11 @@ app.post("/booked-house-details", async (req, res) => {
         renterEmail: user.email,
         renterPhone: user.phone,
         houseId: req.body.houseId,
+        houseAddress: req.body.houseAddress,
+        ownerName: req.body.ownerName,
+        ownerPhone: req.body.ownerPhone,
+        houseRent: req.body.rent,
+        bookingDate: req.body.bookingDate,
       });
 
       await bookedHouseDetails
@@ -240,6 +242,32 @@ app.post("/booked-house-details", async (req, res) => {
           res.send(err);
         });
     }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// get booked houses details by email
+app.get("/booked-houses-details/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+    const details = await BookedHouseDetails.find({
+      renterEmail: email,
+    }).exec();
+
+    res.send(details);
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+// delete booked house details by id
+app.delete("/booked-house-details/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await BookedHouseDetails.deleteOne({ _id: id }).then((result) => {
+      res.send(result);
+    });
   } catch (err) {
     res.send(err);
   }

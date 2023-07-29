@@ -5,6 +5,7 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const newUserSchema = require("./schemas/newUserSchema");
 const NewUser = new mongoose.model("NewUser", newUserSchema);
 const houseDetailsSchema = require("./schemas/houseDetailsSchema");
@@ -19,6 +20,26 @@ const BookedHouseDetails = new mongoose.model(
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized Access" });
+  } else {
+    const authorizationToken = authorization.split(" ")[1];
+
+    jwt.verify(authorizationToken, process.env.SECRET_KEY, (err, decoded) => {
+      if (err) {
+        return res.send({ error: true, err });
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
+  }
+};
+
 // get database uri
 const uri = `${process.env.DB_URI}`;
 
@@ -28,6 +49,15 @@ async function main() {
 }
 
 main().catch((err) => console.log(err));
+
+// JWT
+app.post("/jwt", (req, res) => {
+  const userEmail = req.body;
+  const token = jwt.sign(userEmail, process.env.SECRET_KEY, {
+    expiresIn: 5,
+  });
+  res.send({ token });
+});
 
 // save new user info to database
 app.post("/signup", async (req, res) => {
@@ -146,11 +176,17 @@ app.get("/house-details/:id", async (req, res) => {
 });
 
 // get houses details by email
-app.get("/houses-details/:email", async (req, res) => {
+app.get("/houses-details/:email", verifyJWT, async (req, res) => {
   try {
+    const userEmail = req.decoded.userEmail;
     const email = req.params.email;
-    const houses = await HouseDetails.find({ email: email }).exec();
-    res.send(houses);
+
+    if (userEmail === email) {
+      const houses = await HouseDetails.find({ email: email }).exec();
+      res.send(houses);
+    } else {
+      return res.status(403).send({ error: true, message: "Forbidden Access" });
+    }
   } catch (err) {
     res.send(err);
   }
@@ -248,14 +284,20 @@ app.post("/booked-house-details", async (req, res) => {
 });
 
 // get booked houses details by email
-app.get("/booked-houses-details/:email", async (req, res) => {
+app.get("/booked-houses-details/:email", verifyJWT, async (req, res) => {
   try {
+    const userEmail = req.decoded.userEmail;
     const email = req.params.email;
-    const details = await BookedHouseDetails.find({
-      renterEmail: email,
-    }).exec();
 
-    res.send(details);
+    if (userEmail === email) {
+      const details = await BookedHouseDetails.find({
+        renterEmail: email,
+      }).exec();
+
+      res.send(details);
+    } else {
+      return res.status(403).send({ error: true, message: "Forbidden Access" });
+    }
   } catch (err) {
     res.send(err);
   }

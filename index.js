@@ -54,7 +54,7 @@ main().catch((err) => console.log(err));
 app.post("/jwt", (req, res) => {
   const userEmail = req.body;
   const token = jwt.sign(userEmail, process.env.SECRET_KEY, {
-    expiresIn: 5,
+    expiresIn: "1h",
   });
   res.send({ token });
 });

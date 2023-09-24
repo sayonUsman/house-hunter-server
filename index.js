@@ -148,7 +148,12 @@ app.post("/house-details", async (req, res) => {
 // get houses details
 app.get("/houses-details", async (req, res) => {
   try {
+    const number = req.query.skipNumber;
+    const length = await HouseDetails.find().count();
     const houses = await HouseDetails.find()
+      .sort({ _id: -1 })
+      .skip(number)
+      .limit(12)
       .select({
         bathrooms: 0,
         bedrooms: 0,
@@ -158,7 +163,7 @@ app.get("/houses-details", async (req, res) => {
       })
       .exec();
 
-    res.send(houses);
+    res.send({ houses, length });
   } catch (err) {
     res.send(err);
   }
